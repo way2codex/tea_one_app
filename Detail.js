@@ -1,4 +1,3 @@
-// Detail.js
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -17,52 +16,48 @@ const Detail = ({ route, navigation }) => {
     }, [navigation, name]);
 
     const [quantity, setQuantity] = useState('');
+    const [quantityError, setQuantityError] = useState(false);
     const [fromDate, setFromDate] = useState(new Date());
     const [toDate, setToDate] = useState(new Date());
     const [showFromDatePicker, setShowFromDatePicker] = useState(false);
     const [showToDatePicker, setShowToDatePicker] = useState(false);
 
     const handleQuantityChange = (text) => {
+        setQuantityError(false);
         setQuantity(text);
     };
 
     const handleSaveQuantity = async () => {
         if (!quantity.trim()) {
-            Alert.alert('Error', 'Quantity is required.', [{ text: 'OK' }]);
+            setQuantityError(true);
         } else {
+            setQuantityError(false);
             try {
                 setLoading(true);
-                // Create a FormData object and append the required data
                 let data = new FormData();
                 data.append('customer_id', id.toString());
                 data.append('quantity', quantity);
 
-                // Configure the Axios request
                 let config = {
                     method: 'post',
                     maxBodyLength: Infinity,
                     url: store_entry_api_url,
                     headers: {
-                        'Content-Type': 'multipart/form-data', // Set content type to multipart/form-data
+                        'Content-Type': 'multipart/form-data', 
                     },
                     data: data
                 };
 
-                // Make the Axios request
                 const response = await axios.request(config);
-
-                // Display a success message or handle the response as needed
                 Alert.alert('Quantity Saved', `Quantity Updated: ${quantity}`, [
                     { text: 'OK', onPress: () => console.log('OK Pressed') },
                 ]);
 
-                // Navigate back to the Home screen
                 navigation.navigate('Home');
             } catch (error) {
-                // Display an error message or handle the error as needed
                 Alert.alert('Error', 'Failed to save quantity.', [{ text: 'OK' }]);
             } finally {
-                setLoading(false); // Set loading to false when the asynchronous operation is completed
+                setLoading(false); 
             }
         }
     };
@@ -104,7 +99,7 @@ const Detail = ({ route, navigation }) => {
             console.log('Error fetching PDF:', error.message);
             Alert.alert('Error', 'Failed to fetch PDF.', [{ text: 'OK' }]);
         } finally {
-            setLoading(false); // Set loading to false when the asynchronous operation is completed
+            setLoading(false);
         }
     };
     const handleFromDateChange = (event, selectedDate) => {
@@ -133,7 +128,7 @@ const Detail = ({ route, navigation }) => {
             <View style={styles.row}>
                 <Text style={styles.label}>Enter Quantity:</Text>
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, quantityError && styles.inputError]}
                     placeholder="Quantity"
                     keyboardType="numeric"
                     value={quantity}
@@ -152,7 +147,7 @@ const Detail = ({ route, navigation }) => {
             <View style={styles.row}>
                 <Text style={styles.label}>From Date:</Text>
                 <TouchableOpacity onPress={() => setShowFromDatePicker(true)}>
-                    <Text>{fromDate.toISOString().split('T')[0]}</Text>
+                    <Text>{fromDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</Text>
                 </TouchableOpacity>
                 {showFromDatePicker && (
                     <DateTimePicker
@@ -168,7 +163,7 @@ const Detail = ({ route, navigation }) => {
             <View style={styles.row}>
                 <Text style={styles.label}>To Date:</Text>
                 <TouchableOpacity onPress={() => setShowToDatePicker(true)}>
-                    <Text>{toDate.toISOString().split('T')[0]}</Text>
+                    <Text>{toDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</Text>
                 </TouchableOpacity>
                 {showToDatePicker && (
                     <DateTimePicker
@@ -225,6 +220,9 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 10,
         paddingHorizontal: 10,
+    },
+    inputError: {
+        borderColor: 'red',
     },
 });
 
