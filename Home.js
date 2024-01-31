@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
 import axios from 'axios';
 
@@ -12,16 +12,14 @@ const Home = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [isEmpty, setisEmpty] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: null,
       headerShown: false,
     });
   }, [navigation]);
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setRefreshing(true);
       setisEmpty(false);
@@ -34,14 +32,18 @@ const Home = ({ navigation }) => {
       setRefreshing(false);
       setLoading(false);
     }
-  };
-
+  }, []);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
   const handleItemPress = (id, name) => {
     setSearchText('');
     setSearchData(data);
     navigation.navigate('Detail', { id, name });
   };
-
+  const handleAddCustomer = () => {
+    navigation.navigate('AddCustomer', { onCustomerAdded: fetchData });
+  };
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => handleItemPress(item.id, item.name)}
       style={styles.itemContainer}>
@@ -96,18 +98,21 @@ const Home = ({ navigation }) => {
               <RefreshControl refreshing={refreshing} onRefresh={fetchData} />
             }
           />
+          <TouchableOpacity style={styles.floatingButton} onPress={handleAddCustomer}>
+            <Text style={styles.floatingButtonText}>Add Customer</Text>
+          </TouchableOpacity>
         </>
       )
       }
     </View >
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 10,
     paddingHorizontal: 1,
+    paddingBottom: 45, // Adjust this value as needed
   },
   itemContainer: {
     padding: 16,
@@ -126,6 +131,28 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
   },
-});
 
+  floatingButton: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  floatingButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
 export default Home;
