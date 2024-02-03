@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
+import { RadioButton } from 'react-native-paper'; 
 
 const Detail = ({ route, navigation }) => {
     const { id, name } = route.params;
     const api_base_url = 'https://www.teaone.online/tea_one/public/api/';
+    // const api_base_url = 'https://obviously-patient-grizzly.ngrok-free.app/tea_one/public/api/';
+    const product_list_api_url = api_base_url + 'product_list';
     const store_entry_api_url = api_base_url + 'store_entry';
     const entry_report_api_url = api_base_url + 'entry_report';
     const [loading, setLoading] = useState(false);
@@ -21,6 +24,27 @@ const Detail = ({ route, navigation }) => {
     const [toDate, setToDate] = useState(new Date());
     const [showFromDatePicker, setShowFromDatePicker] = useState(false);
     const [showToDatePicker, setShowToDatePicker] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [productList, setProductList] = useState([]);
+
+    React.useEffect(() => {
+        const fetchProductList = async () => {
+            try {
+                const response = await axios.get(product_list_api_url);
+                setProductList(response.data);
+            } catch (error) {
+                console.error('Error fetching product list:', error.message);
+            }
+        };
+
+        fetchProductList();
+    }, []);
+
+    React.useEffect(() => {
+        if (productList.length > 0) {
+            setSelectedProduct(productList[0].id);
+        }
+    }, [productList]);
 
     const handleQuantityChange = (text) => {
         setQuantityError(false);
@@ -36,6 +60,7 @@ const Detail = ({ route, navigation }) => {
                 setLoading(true);
                 let data = new FormData();
                 data.append('customer_id', id.toString());
+                data.append('product_id', selectedProduct);
                 data.append('quantity', quantity);
 
                 let config = {
@@ -43,7 +68,7 @@ const Detail = ({ route, navigation }) => {
                     maxBodyLength: Infinity,
                     url: store_entry_api_url,
                     headers: {
-                        'Content-Type': 'multipart/form-data', 
+                        'Content-Type': 'multipart/form-data',
                     },
                     data: data
                 };
@@ -57,7 +82,7 @@ const Detail = ({ route, navigation }) => {
             } catch (error) {
                 Alert.alert('Error', 'Failed to save quantity.', [{ text: 'OK' }]);
             } finally {
-                setLoading(false); 
+                setLoading(false);
             }
         }
     };
@@ -124,6 +149,22 @@ const Detail = ({ route, navigation }) => {
             <View style={styles.row}>
                 <Text style={styles.label}>Name:</Text>
                 <Text style={styles.value}>{name}</Text>
+            </View>
+            <View style={styles.row}>
+                <Text style={styles.label}>Select Product:</Text>
+                <RadioButton.Group
+                    onValueChange={(value) => setSelectedProduct(value)}
+                    value={selectedProduct}
+                >
+                    {productList.map((product) => (
+                        <RadioButton.Item
+                            key={product.id}
+                            label={product.name}
+                            value={product.id}
+                            style={styles.radioButton}
+                        />
+                    ))}
+                </RadioButton.Group>
             </View>
             <View style={styles.row}>
                 <Text style={styles.label}>Enter Quantity:</Text>
@@ -204,11 +245,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderBottomWidth: 1,
         borderColor: '#ccc',
-        marginBottom: 20,
+        marginBottom: 5,
         paddingBottom: 10,
     },
     label: {
         fontWeight: 'bold',
+        fontSize: 16,
     },
     value: {
         fontSize: 16,
@@ -223,6 +265,12 @@ const styles = StyleSheet.create({
     },
     inputError: {
         borderColor: 'red',
+    },
+    radioButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 0,
+        marginVertical: 0
     },
 });
 

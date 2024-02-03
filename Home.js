@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const Home = ({ navigation }) => {
   const api_base_url = 'https://www.teaone.online/tea_one/public/api/';
+  // const api_base_url = 'https://obviously-patient-grizzly.ngrok-free.app/tea_one/public/api/';
   const customer_list_api_url = api_base_url + 'customer_list';
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);

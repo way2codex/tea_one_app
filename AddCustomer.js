@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const AddCustomer = ({ navigation, route }) => {
   const api_base_url = 'https://www.teaone.online/tea_one/public/api/';
+  // const api_base_url = 'https://obviously-patient-grizzly.ngrok-free.app/tea_one/public/api/';
   const store_customer_api_url = api_base_url + 'store_customer';
   const [newCustomerName, setNewCustomerName] = useState('');
   const [loading, setLoading] = useState(false);
